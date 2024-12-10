@@ -358,7 +358,7 @@ const addBidController = async (req, res) => {
 
         res.status(201).send({
             success: true,
-            message: "Bid added successfully and notification sent to the seller.",
+            message: "Bid added successfully",
             bid,
         });
     } catch (error) {
@@ -503,6 +503,7 @@ const getProductBidsController = async (req, res) => {
 const changeBidStatusController = async (req, res) => {
     try {
         const { bidId, newStatus } = req.body;
+        const senderId = req.user._id; // Logged-in user as sender
 
         // Validate the new status
         const validStatuses = ['running', 'winner', 'closed'];
@@ -513,7 +514,7 @@ const changeBidStatusController = async (req, res) => {
             });
         }
 
-        // Find the bid by ID
+        // Find the bid by ID and populate the product
         const bid = await bidModel.findById(bidId).populate('productId');
         if (!bid) {
             return res.status(404).send({
@@ -522,12 +523,38 @@ const changeBidStatusController = async (req, res) => {
             });
         }
 
-        // If new status is 'winner', close all other bids on the same product
+        const product = bid.productId;
+
+        // Handle 'winner' status
         if (newStatus === 'winner') {
+            // Close all other bids for the product
+            const otherBids = await bidModel.find({
+                productId: product._id,
+                _id: { $ne: bidId }, // Exclude the winning bid
+            });
+
             await bidModel.updateMany(
-                { productId: bid.productId, _id: { $ne: bidId } }, // Exclude the winning bid
+                { productId: product._id, _id: { $ne: bidId } },
                 { bidStatus: 'closed' }
             );
+
+            // Notify the winner
+            const winnerNotification = `Congratulations! You are the winner for the product "${product.productName}".`;
+            await Notification.create({
+                senderId, // Logged-in user as sender
+                receiverId: bid.bidderId,
+                message: winnerNotification,
+            });
+
+            // Notify other bidders
+            for (const otherBid of otherBids) {
+                const otherBidderNotification = `The bidding for the product "${product.productName}" has closed.`;
+                await Notification.create({
+                    senderId, // Logged-in user as sender
+                    receiverId: otherBid.bidderId,
+                    message: otherBidderNotification,
+                });
+            }
         }
 
         // Update the bid status
@@ -548,6 +575,8 @@ const changeBidStatusController = async (req, res) => {
         });
     }
 };
+
+
 
 // Close all bids if product is set to not open
 const closeBidsOnProductCloseController = async (req, res) => {
@@ -713,12 +742,12 @@ const updateProductController = async (req, res) => {
 //   get all notifications controller
   const getAllNotifications = async (req, res) => {
     try {
-        const notifications = await Notification.find({ receiverId: req.user._id }).sort({ createdAt: -1 });
+        const notifications = await Notification.find({ receiverId: req.user._id }).sort({ createdAt: -1 }).populate('senderId', 'fullName email contact ');;
         res.status(200).send({
             success: true,
             message: "Notifications retrieved successfully",
             notifications,
-        });
+        })
     } catch (error) {
         console.error(error);
         res.status(500).send({
