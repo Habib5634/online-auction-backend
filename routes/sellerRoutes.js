@@ -36,3 +36,8 @@ router.get('/transactions',recruiterMiddleware,getAllTransactions)
 // router.put('/job/update',recruiterMiddleware,updateJobFieldsController)
 
 module.exports = router
+// PORT = 8080
+// SOCKET_PORT = 5000
+// MONGO_URL = mongodb+srv://hero5276311:txaVe5GxGFC66FTy@cluster0.w85hcbq.mongodb.net/online-auction
+// JWT_SECRET = kjfgnkajhgkhibvcaefniuefi
+// # mongodb+srv://hero5276311:<db_password>@cluster0.w85hcbq.mongodb.net/
