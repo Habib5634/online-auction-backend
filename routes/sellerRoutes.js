@@ -1,7 +1,7 @@
 const express = require('express')
 const sellerMiddleware = require('../middlewares/sellerMiddleware')
 const { addProductController, getAllPostedProductsController, getProductBidsController, changeBidStatusController, closeBidsOnProductCloseController, updateProductController } = require('../controllers/productController')
-const { getAllTransactions } = require('../controllers/transactionController')
+const { getAllTransactions, getSellerTransactions, updateTransactionStatus } = require('../controllers/transactionController')
 
 const router = express.Router()
 
@@ -26,8 +26,12 @@ router.put('/product/:productId',sellerMiddleware,updateProductController)
 
 
 // transactions routes
+
+// get seller transactions
+router.get('/seller-transaction',sellerMiddleware,getSellerTransactions)
+
 // add job application questions
-router.get('/transactions',recruiterMiddleware,getAllTransactions)
+router.put('/update-transaction-status/:transactionId',sellerMiddleware,updateTransactionStatus)
 
 // close  job 
 // router.put('/job/:jobId/close',recruiterMiddleware,closeJobController)
@@ -36,8 +40,3 @@ router.get('/transactions',recruiterMiddleware,getAllTransactions)
 // router.put('/job/update',recruiterMiddleware,updateJobFieldsController)
 
 module.exports = router
-// PORT = 8080
-// SOCKET_PORT = 5000
-// MONGO_URL = mongodb+srv://hero5276311:txaVe5GxGFC66FTy@cluster0.w85hcbq.mongodb.net/online-auction
-// JWT_SECRET = kjfgnkajhgkhibvcaefniuefi
-// # mongodb+srv://hero5276311:<db_password>@cluster0.w85hcbq.mongodb.net/

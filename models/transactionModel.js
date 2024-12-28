@@ -14,7 +14,7 @@ const transactionSchema = new mongoose.Schema(
         },
         productId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product',
+            ref: 'Products',
             required: true,
         },
         amount: {
@@ -30,6 +30,5 @@ const transactionSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const Transaction = mongoose.model('Transaction', transactionSchema);
+module.exports = mongoose.model('Transaction', transactionSchema);
 
-module.exports = Transaction;
