@@ -2,45 +2,71 @@ const categoryModel = require("../models/categoryModel")
 const productModel = require("../models/productModel")
 const bidModel = require('../models/bidModel')
 const Notification = require('../models/notificationModel');
-// add product category for admin
+
+
 const addCategoryController = async (req, res) => {
     try {
-        const { name, description, isActive } = req.body;
+        const categories = req.body.categories;
 
-        // validation
-        if (!name || !description) {
+        // Validation: Check if categories is an array and not empty
+        if (!Array.isArray(categories) || categories.length === 0) {
             return res.status(400).send({
                 success: false,
-                message: 'please provide required fields'
-            })
+                message: 'Please provide an array of categories with required fields',
+            });
         }
 
+        // Track results for each category
+        const results = [];
+        for (const categoryData of categories) {
+            const { name, description, isActive } = categoryData;
 
-        // category exist!!!
-        const existing = await categoryModel.findOne({ name })
-        if (existing) {
-            return res.status(500).send({
-                success: false,
-                message: "Category Already exist"
-            })
+            // Validate individual category fields
+            if (!name || !description) {
+                results.push({
+                    success: false,
+                    message: 'Missing required fields for category',
+                    categoryData,
+                });
+                continue;
+            }
+
+            // Check if category already exists
+            const existing = await categoryModel.findOne({ name });
+            if (existing) {
+                results.push({
+                    success: false,
+                    message: 'Category already exists',
+                    name,
+                });
+                continue;
+            }
+
+            // Save the category
+            const category = await categoryModel.create({ name, description, isActive });
+            results.push({
+                success: true,
+                message: 'Category created successfully',
+                category,
+            });
         }
-        // save user
-        const category = await categoryModel.create({ name, description, isActive });
+
+        // Response with overall status
         res.status(201).send({
             success: true,
-            message: "Successfully Created Category",
-            category
-        })
-
+            message: 'Processed all categories',
+            results,
+        });
     } catch (error) {
-        console.log(error)
+        console.error(error);
         res.status(500).send({
             success: false,
-            message: "Error in post category API",
-            error
-        })
+            message: 'Error in adding categories',
+            error,
+        });
     }
-}
+};
+
 
 
 // add product by seller

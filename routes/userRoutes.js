@@ -1,6 +1,7 @@
 const express = require('express')
 const { getLatestProductsController, getProductByIdController, getProductsByCategoryController, getAllProductCategoriesController, addBidController, getPostedBidsController, endAllAuctionsController, getCategoryByIdController, getAllNotifications, getSingleNotification, markAsRead, markAllAsRead } = require('../controllers/productController')
 const authMiddleware = require('../middlewares/authMiddleware')
+const { createTransaction, getTransactionById, getBuyerTransactions } = require('../controllers/transactionController')
 const router = express.Router()
 
 // PRODUCT BY ID || GET
@@ -43,8 +44,17 @@ router.put('/notifications/mark-as-read/:notificationId', authMiddleware, markAs
 // mark al as read notification
 router.put('/notifications/mark-all-as-read', authMiddleware, markAllAsRead);
 
-// // submit application questions answers
-// router.post('/assessment/mark-ineligible',authMiddleware,markUserIneligibleController)
+
+
+// transaction routes
+// submit transactions
+router.post('/transaction',authMiddleware,createTransaction)
+// get transaction by id
+router.get('/transaction/:transactionId',authMiddleware,getTransactionById)
+// get transaction by id
+router.get('/transactions/',authMiddleware,getBuyerTransactions)
+
+// 
 
 
 

@@ -1,6 +1,7 @@
 const express = require('express')
 const sellerMiddleware = require('../middlewares/sellerMiddleware')
 const { addProductController, getAllPostedProductsController, getProductBidsController, changeBidStatusController, closeBidsOnProductCloseController, updateProductController } = require('../controllers/productController')
+const { getAllTransactions, getSellerTransactions, updateTransactionStatus } = require('../controllers/transactionController')
 
 const router = express.Router()
 
@@ -23,8 +24,14 @@ router.put('/close-product-bids/:productId',sellerMiddleware,closeBidsOnProductC
 // add job application questions
 router.put('/product/:productId',sellerMiddleware,updateProductController)
 
+
+// transactions routes
+
+// get seller transactions
+router.get('/seller-transaction',sellerMiddleware,getSellerTransactions)
+
 // add job application questions
-// router.get('/assessment/candidate',recruiterMiddleware,getCandidateAnswersController)
+router.put('/update-transaction-status/:transactionId',sellerMiddleware,updateTransactionStatus)
 
 // close  job 
 // router.put('/job/:jobId/close',recruiterMiddleware,closeJobController)
