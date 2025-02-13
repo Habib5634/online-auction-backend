@@ -169,11 +169,12 @@ const updateUserController = async (req, res) => {
         }
 
         // Update fields
-        const { userName, fullName,contact } = req.body;
+        const { userName, fullName,contact,profile } = req.body;
 
         if (userName) user.userName = userName;
         if (fullName) user.fullName = fullName;
         if (contact) user.contact = contact;
+        if (profile) user.profile = profile;
 
         
 
