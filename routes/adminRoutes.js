@@ -1,22 +1,26 @@
 const express = require('express')
 const adminMiddleware = require('../middlewares/adminMiddleware')
-const { addCategoryController } = require('../controllers/productController')
+const { addCategoryController, getAllProductsController, updateProductController, deleteProductController, deleteCategoryController, changeCategoryStatusController, getAllProductCategoriesController } = require('../controllers/productController')
+const { getAllUsersController, deleteUserController } = require('../controllers/authController')
 const router = express.Router()
 
-// JOB CATEGORY || POST
+// product CATEGORY || POST
 router.post('/category/',adminMiddleware, addCategoryController)
+router.delete('/category/:categoryId',adminMiddleware, deleteCategoryController)
+router.put('/category/:categoryId',adminMiddleware, changeCategoryStatusController)
 
-// update  job 
-// router.put('/job/update',adminMiddleware,updateJobFieldsController)
 
-// get all  jobs 
-// router.get('/jobs',adminMiddleware,getAllJobsController)
+// // ALL PRODUCT CATEGORIES || GET
+router.get('/categories',adminMiddleware,getAllProductCategoriesController)
+// get all products
+router.get('/products/',adminMiddleware, getAllProductsController)
+router.put('/product/:productId',adminMiddleware,updateProductController)
+router.delete('/product/:productId',adminMiddleware,deleteProductController)
 
-// get All users 
-// router.get('/users',adminMiddleware,getAllUsersController)
-
-// delete user by id
-// router.delete('/user/:userId',adminMiddleware,deleteUserByIdController)
+// users
+router.get('/users/',adminMiddleware, getAllUsersController)
+router.delete('/user/:userId',adminMiddleware, deleteUserController)
+router.delete('/user/:userId',adminMiddleware, deleteUserController)
 
 
 

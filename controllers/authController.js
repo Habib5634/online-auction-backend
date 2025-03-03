@@ -61,6 +61,62 @@ const registerController = async (req, res) => {
         })
     }
 }
+const getAllUsersController = async (req, res) => {
+    try {
+        const users = await userModel.find();
+
+        if (users.length === 0) {
+            return res.status(404).send({
+                success: false,
+                message: "No users found"
+            });
+        }
+
+        res.status(200).send({
+            success: true,
+            message: "Users fetched successfully",
+            users
+        });
+
+    } catch (error) {
+        console.error("Error in get all users API:", error);  // Log the error message and stack trace
+        res.status(500).send({
+            success: false,
+            message: "Error in get all users API",
+            error: error.message || error  // Send the error message to the client
+        });
+    }
+};
+const deleteUserController = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Check if the user exists
+        const user = await userModel.findById(userId);
+        if (!user) {
+            return res.status(404).send({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // Delete the user
+        await userModel.findByIdAndDelete(userId);
+
+        res.status(200).send({
+            success: true,
+            message: "User deleted successfully"
+        });
+
+    } catch (error) {
+        console.error("Error in delete user API:", error); // Log error details
+        res.status(500).send({
+            success: false,
+            message: "Error in delete user API",
+            error: error.message || error // Send the error message to the client
+        });
+    }
+};
 
 
 // Login Controller
@@ -287,5 +343,5 @@ const resetPasswordController = async (req, res) => {
 
 
 
-module.exports = { registerController, loginController, getUserController, updateUserController, updatePasswordController, resetPasswordController }
+module.exports = { registerController, loginController, getUserController, updateUserController, updatePasswordController, resetPasswordController,getAllUsersController,deleteUserController }
 

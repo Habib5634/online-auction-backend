@@ -1,7 +1,7 @@
 const express = require('express')
 const sellerMiddleware = require('../middlewares/sellerMiddleware')
 const { addProductController, getAllPostedProductsController, getProductBidsController, changeBidStatusController, closeBidsOnProductCloseController, updateProductController } = require('../controllers/productController')
-const { getAllTransactions } = require('../controllers/transactionController')
+const { getAllTransactions, updateTransactionStatus } = require('../controllers/transactionController')
 
 const router = express.Router()
 
@@ -21,19 +21,14 @@ router.put('/bid/status',sellerMiddleware,changeBidStatusController)
 router.put('/close-product-bids/:productId',sellerMiddleware,closeBidsOnProductCloseController)
 
 
-// add job application questions
+
 router.put('/product/:productId',sellerMiddleware,updateProductController)
 
 
 // transactions routes
-// add job application questions
-router.get('/transactions',recruiterMiddleware,getAllTransactions)
 
-// close  job 
-// router.put('/job/:jobId/close',recruiterMiddleware,closeJobController)
-
-// close  job 
-// router.put('/job/update',recruiterMiddleware,updateJobFieldsController)
+router.get('/transactions',sellerMiddleware,getAllTransactions)
+router.put('/transaction/:transactionId',sellerMiddleware,updateTransactionStatus)
 
 module.exports = router
 // PORT = 8080

@@ -134,6 +134,41 @@ const addProductController = async (req, res) => {
     }
 };
 
+const getAllProductsController = async (req, res) => {
+    try {
+        const { category, sellerId, isOpen } = req.query; // Optional filters
+
+        // Build a dynamic query object
+        let query = {};
+        if (category) query.productCategory = category;
+        if (sellerId) query.sellerId = sellerId;
+        if (isOpen !== undefined) query.isOpen = isOpen === 'true'; 
+
+        // Fetch products with populated seller and category details
+        const products = await productModel
+            .find(query)
+            .populate("sellerId", "fullName userName email") // Get specific fields from seller
+            .populate("productCategory", "name description") // Get specific fields from category
+            .sort({ createdAt: -1 });
+
+        res.status(200).send({
+            success: true,
+            message: "Products retrieved successfully",
+            total: products.length,
+            products
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({
+            success: false,
+            message: "Error in fetching products",
+            error
+        });
+    }
+};
+
+
 // Gett Latest 10 Auction Products Controller
 const getLatestProductsController = async (req, res) => {
     try {
@@ -371,6 +406,36 @@ const addBidController = async (req, res) => {
     }
 };
 
+const deleteProductController = async (req, res) => {
+    try {
+        const { productId } = req.params;
+
+        // Check if product exists
+        const product = await productModel.findById(productId);
+        if (!product) {
+            return res.status(404).send({
+                success: false,
+                message: "Product not found",
+            });
+        }
+
+        // Delete product
+        await productModel.findByIdAndDelete(productId);
+
+        res.status(200).send({
+            success: true,
+            message: "Product deleted successfully",
+        });
+
+    } catch (error) {
+        console.error("Error deleting product:", error);
+        res.status(500).send({
+            success: false,
+            message: "Error deleting product",
+            error,
+        });
+    }
+};
 
 
 // get all bid posted by user controller
@@ -555,6 +620,10 @@ const changeBidStatusController = async (req, res) => {
                     message: otherBidderNotification,
                 });
             }
+
+            // ✅ Mark the product as not open for bidding anymore
+            product.isOpen = false;
+            await product.save();
         }
 
         // Update the bid status
@@ -575,6 +644,7 @@ const changeBidStatusController = async (req, res) => {
         });
     }
 };
+
 
 
 
@@ -635,7 +705,7 @@ const expiredProducts = await productModel.find({
     endDate: { $lte: currentTime },
 });
 
-console.log(expiredProducts)
+
         if (expiredProducts.length === 0) {
             return res.status(200).send({
                 success: true,
@@ -842,5 +912,63 @@ const getSingleNotification = async (req, res) => {
 };
 
 
+const changeCategoryStatusController = async (req, res) => {
+    try {
+        const { categoryId } = req.params;
+        
+        // Find category
+        const category = await categoryModel.findById(categoryId);
+        if (!category) {
+            return res.status(404).send({
+                success: false,
+                message: "Category not found",
+            });
+        }
 
-module.exports = { addCategoryController,addProductController,getLatestProductsController,getProductByIdController,getAllPostedProductsController,getProductsByCategoryController,getAllProductCategoriesController,addBidController,getPostedBidsController,getProductBidsController,changeBidStatusController,closeBidsOnProductCloseController,endAllAuctionsController,getCategoryByIdController,updateProductController,getAllNotifications,markAsRead,markAllAsRead,getSingleNotification }
+        // Toggle status
+        category.isActive = !category.isActive;
+        await category.save();
+
+        res.status(200).send({
+            success: true,
+            message: "Category status updated successfully",
+            category,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({
+            success: false,
+            message: "Error updating category status",
+            error,
+        });
+    }
+};
+
+const deleteCategoryController = async (req, res) => {
+    try {
+        const { categoryId } = req.params;
+
+        const category = await categoryModel.findByIdAndDelete(categoryId);
+        if (!category) {
+            return res.status(404).send({
+                success: false,
+                message: "Category not found",
+            });
+        }
+
+        res.status(200).send({
+            success: true,
+            message: "Category deleted successfully",
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({
+            success: false,
+            message: "Error deleting category",
+            error,
+        });
+    }
+};
+
+
+module.exports = { addCategoryController,addProductController,getLatestProductsController,getProductByIdController,getAllPostedProductsController,getProductsByCategoryController,getAllProductCategoriesController,addBidController,getPostedBidsController,getProductBidsController,changeBidStatusController,closeBidsOnProductCloseController,endAllAuctionsController,getCategoryByIdController,updateProductController,getAllNotifications,markAsRead,markAllAsRead,getSingleNotification,getAllProductsController,deleteProductController,changeCategoryStatusController,deleteCategoryController }

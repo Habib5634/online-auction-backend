@@ -50,7 +50,7 @@ const updateTransactionStatus = async (req, res) => {
         await transaction.save();
 
         // Notify buyer about the status change
-        const productName = transaction.productId.name;
+        const productName = transaction.productId.productName;
         const notificationMessage = `Your transaction for the product "${productName}" has been ${status} by the seller.`;
         const notification = new Notification({
             senderId: sellerId,
@@ -76,6 +76,7 @@ const getAllTransactions = async (req, res) => {
         res.status(200).json({ success: true, transactions });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error fetching transactions', error });
+        console.log(error)
     }
 };
 
