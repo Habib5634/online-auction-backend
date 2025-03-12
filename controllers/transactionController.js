@@ -3,18 +3,26 @@ const Notification = require('../models/notificationModel');
 const productModel = require('../models/productModel')
 
 // Create a transaction
+// Create a transaction
 const createTransaction = async (req, res) => {
     const { sellerId, productId, amount } = req.body;
     const buyerId = req.user._id; // Assuming buyerId is retrieved from req.user
     const buyerName = req.user.userName; // Assuming req.user includes buyer's name
 
     try {
+        // Check if a transaction already exists for the same buyer and product
+        const existingTransaction = await Transaction.findOne({ buyerId, productId });
+        if (existingTransaction) {
+            return res.status(400).json({ success: false, message: 'You have already created a transaction for this product.' });
+        }
+
         // Fetch the product details
         const product = await productModel.findById(productId);
         if (!product) {
             return res.status(404).json({ success: false, message: 'Product not found' });
         }
 
+        // Create a new transaction
         const transaction = new Transaction({ buyerId, sellerId, productId, amount });
         await transaction.save();
 
@@ -71,7 +79,7 @@ const getAllTransactions = async (req, res) => {
         const transactions = await Transaction.find()
             .populate('buyerId', 'fullName email') // Populating buyer's name and email
             .populate('sellerId', 'fullName email') // Populating seller's name and email
-            .populate('productId', 'productName'); // Populating product name
+            .populate('productId', 'productName shippingStatus'); // Populating product name
 
         res.status(200).json({ success: true, transactions });
     } catch (error) {

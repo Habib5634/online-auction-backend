@@ -2,6 +2,7 @@ const categoryModel = require("../models/categoryModel")
 const productModel = require("../models/productModel")
 const bidModel = require('../models/bidModel')
 const Notification = require('../models/notificationModel');
+const Transaction = require("../models/transactionModel");
 // add product category for admin
 const addCategoryController = async (req, res) => {
     try {
@@ -758,57 +759,96 @@ const expiredProducts = await productModel.find({
 
 
 // Controller to update product details
+// Controller to update product details
 const updateProductController = async (req, res) => {
     const { productId } = req.params;
     const {
-      productName,
-      productCompany,
-      location,
-      productType,
-      price,
-      description1,
-      description2,
-      description3,
-      isOpen,
-      endDate,
-      images,
+        productName,
+        productCompany,
+        location,
+        productType,
+        price,
+        description1,
+        description2,
+        description3,
+        isOpen,
+        endDate,
+        images,
+        shippingStatus
     } = req.body;
-  
+
     try {
-      // Find and update the product
-      const updatedProduct = await productModel.findByIdAndUpdate(
-        productId,
-        {
-          productName,
-          productCompany,
-          location,
-          productType,
-          price,
-          description1,
-          description2,
-          description3,
-          isOpen,
-          endDate,
-          images, // Assume `images` is an array of strings (URLs)
-        },
-        { new: true, runValidators: true } // Return the updated document and validate data
-      );
-  
-      if (!updatedProduct) {
-        return res.status(404).json(
-            { 
+        // Find the existing product to check the current shipping status
+        const existingProduct = await productModel.findById(productId);
+        if (!existingProduct) {
+            return res.status(404).json({
                 success: false,
-                
-                message: "Product not found" }
+                message: "Product not found"
+            });
+        }
+
+        // Check if the shipping status is being updated
+        const isShippingStatusUpdated = shippingStatus && shippingStatus !== existingProduct.shippingStatus;
+
+        // Find and update the product
+        const updatedProduct = await productModel.findByIdAndUpdate(
+            productId,
+            {
+                productName,
+                productCompany,
+                location,
+                productType,
+                price,
+                description1,
+                description2,
+                description3,
+                isOpen,
+                endDate,
+                images, // Assume `images` is an array of strings (URLs)
+                shippingStatus
+            },
+            { new: true, runValidators: true } // Return the updated document and validate data
         );
-      }
-  
-      res.status(200).json({success: true, message: "Product updated successfully", product: updatedProduct });
+
+        if (!updatedProduct) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found"
+            });
+        }
+
+        // Send a notification to the buyer if the shipping status is updated
+        if (isShippingStatusUpdated) {
+            // Find the transaction associated with this product and buyer
+            const transaction = await Transaction.findOne({ productId: productId });
+
+            if (transaction) {
+                const buyerId = transaction.buyerId;
+                const notificationMessage = `The shipping status for your product "${updatedProduct.productName}" has been updated to "${shippingStatus}".`;
+
+                // Create and save the notification
+                const notification = new Notification({
+                    senderId: req.user._id, // Assuming the seller is updating the product
+                    receiverId: buyerId,
+                    message: notificationMessage,
+                });
+                await notification.save();
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Product updated successfully",
+            product: updatedProduct
+        });
     } catch (error) {
-      res.status(500).json({success: false, message: "Failed to update product", error: error.message });
+        res.status(500).json({
+            success: false,
+            message: "Failed to update product",
+            error: error.message
+        });
     }
-  };
-  
+};
 //   get all notifications controller
   const getAllNotifications = async (req, res) => {
     try {

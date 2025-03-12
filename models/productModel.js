@@ -25,6 +25,11 @@ const productSchema = new mongoose.Schema({
         enum: ['used', 'new'],
         default:'new'
     },
+    shippingStatus: {
+        type: String,
+        enum: ['pending', 'processing',"shipped",'delivered'],
+        default:'pending'
+    },
     price: {
         type: Number,
     },
